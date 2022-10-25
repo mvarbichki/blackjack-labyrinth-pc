@@ -1,0 +1,534 @@
+# import sound
+#:import ga GameAudio
+#:import hex kivy.utils.get_color_from_hex
+#:import SwapTransition kivy.uix.screenmanager.SwapTransition
+#:import Factory kivy.factory.Factory
+
+
+<ScreenManager>:
+
+    # transition style
+    transition: SwapTransition()
+
+    MainWindow:
+    GameWindow:
+    GameInfoWindow:
+
+
+# custom label for info titles
+<InfoTitlesLabel>:
+    bold: True
+    size_hint_y: None
+    height: self.texture_size[1]
+    font_name: "aae"
+    text_size: self.width, None
+    font_size: self.width/40
+    padding: 10, 10
+
+# custom label for info text
+<InfoTextLabel>:
+    size_hint_y: None
+    font_name: "aae"
+    height: self.texture_size[1]
+    text_size: self.width, None
+    font_size: self.width/55
+    padding: 10, 10
+
+# popup for prompt player to make a bet
+<PlayerBetPopup>:
+    size_hint: .7, .4
+    title: ""
+    separator_height: 0
+    Label:
+        text: "Slide right to make a bet"
+        bold: True
+        font_name: "aae"
+        font_size: root.width/20
+
+
+<MainWindow>:
+
+    name: "main"
+
+    FloatLayout:
+        canvas.before:
+            Rectangle:
+                pos: self.pos
+                size: self.size
+                source: "assets/main_bg.jpg"
+
+        Label:
+            text: "MENU"
+            pos_hint: {"center_x": .5, "center_y": .8}
+            bold: True
+            font_name: "aae"
+            font_size: root.width/15
+
+        Button:
+            id: play_but_id
+            text: "Play"
+            background_down: "assets/b1.png"
+            bold: True
+            font_name: "aae"
+            font_size: root.width/30
+            background_color: (217/255, 255/255, 251/255, 1)
+            pos_hint: {"center_x": .5, "center_y": .5}
+            size_hint: .2, .1
+            on_release:
+                # change to game screen
+                app.root.current = "game"
+
+                # PlayerBetPopup play button sound trigger when the player enter the game
+                if play_but_id.text == "Play": Factory.PlayerBetPopup().open(), ga.GameSound.play_play_but_sound()
+
+                # if but text is Resume plays normal but sound
+                ga.GameSound.play_buttons_sound()
+
+                # change Play button text to Resume
+                root.play_but_change()
+
+        Button:
+            text: "info"
+            background_down: "assets/b1.png"
+            bold: True
+            font_name: "aae"
+            font_size: root.width/30
+            background_color: (217/255, 255/255, 251/255, 1)
+            pos_hint: {"center_x": .5, "center_y": .38}
+            size_hint: .2, .1
+            on_release:
+                # stop menu sound
+                ga.GameSound.stop_menu_sound()
+
+                # change to info screen
+                app.root.current = "info"
+
+                # play info_but sound
+                ga.GameSound.play_info_but_sound()
+
+                # play info menu sound
+                ga.GameSound.play_info_sound()
+
+        Button:
+            text: "Quit"
+            background_down: 'assets/b1.png'
+            bold: True
+            font_name: "aae"
+            font_size: root.width/30
+            background_color: (217/255, 255/255, 251/255, 1)
+            pos_hint: {"center_x": .5, "center_y": .26}
+            size_hint: .2, .1
+            on_release:
+                app.stop()
+
+
+        # sound label in menu
+        Label:
+            text: "sound"
+            bold: True
+            font_name: "aae"
+            font_size: root.width/40
+            pos_hint: {"center_x": .90, "center_y": .2}
+            size_hint: .1, .1
+
+        # switch for sound off/on
+        Switch:
+            pos_hint: {"center_x": .90, "center_y": .1}
+            size_hint: .1, .1
+            active: False
+			on_active:
+			    root.sound_on_off(self, self.active)
+
+
+<GameWindow>:
+
+    name: "game"
+
+    # popups titles and buttons font size
+    titles_buttons_size: root.width/45
+
+    # popups text size
+    text_size: root.width/55
+
+    # ace selection button font size
+    ace_but_size: root.width/30
+
+    # AI, BJ , RJ display info font size
+    display_info_size: root.width/60
+
+    BoxLayout:
+
+        orientation: "vertical"
+
+        # game window background and horizontal border
+        canvas.before:
+            Rectangle:
+                pos: self.pos
+                size: self.size
+                source: "assets/game_bg.jpg"
+            Color:
+                rgba: hex("#404040")
+            Line:
+                points: (0, root.height/1.74, root.width, root.height/1.74)
+                width: 4
+
+        # GAME WINDOW
+        BoxLayout:
+            orientation: "vertical"
+
+            # DEALER SIDE
+            DealerLayout:
+                orientation: "vertical"
+
+                # DEALER TOP MENU
+                BoxLayout:
+                    size_hint: 1, None
+                    height: root.height * 0.1
+
+                    # layouts for RES but and difficulty,dealer's red jk, dealer's black jk labels
+                    BoxLayout:
+                        size_hint: None, 1
+                        width: root.width * 0.5
+
+                        # button for game restart
+                        Button:
+                            size_hint: None, 1
+                            pos_hint: {"x": 0.5, "y": 0.1}
+                            width: root.width * 0.1
+                            text: "RES"
+                            bold: True
+                            font_name: "aae"
+                            font_size: root.width/50
+                            background_normal: "assets/b1.png"
+                            background_down: "assets/b1.png"
+                            on_press:
+                                # play but sound
+                                ga.GameSound.play_buttons_sound()
+
+                                # game resset popup
+                                root.restart_popup()
+
+                        # labels
+                        BoxLayout:
+                            BoxLayout:
+                                id: difficulty_id
+                                pos_hint: {"x": 0.5, "y": 0.15}
+                            BoxLayout:
+                                id: d_rjk_id
+                                pos_hint: {"x": 0.5, "y": 0.15}
+                            BoxLayout:
+                                id: d_bjk_id
+                                pos_hint: {"x": 0.5, "y": 0.15}
+
+                    # side label information
+                    BoxLayout:
+                        size_hint: None, 1
+                        width: root.width * 0.5
+                        Label:
+                            text: "dealer's side"
+                            font_name: "aae"
+                            bold: True
+                            font_size: root.width/40
+
+                # DEALER CARDS LAYOUT
+                StackLayout:
+                    id: dealer_layout_id
+                    orientation: "rl-tb"
+                    padding: self.width * 0.005
+                    spacing: self.width * 0.003
+
+
+            # PLAYER SIDE
+            PlayerLayout:
+
+                orientation: "vertical"
+
+                # PLAYER TOP MENU
+                BoxLayout:
+                    size_hint: 1, None
+                    height: root.height * 0.1
+
+                    # side, label information
+                    BoxLayout:
+                        size_hint: None, 1
+                        width: root.width * 0.5
+                        Label:
+                            text: "player's side"
+                            font_name: "aae"
+                            bold: True
+                            font_size: root.width/40
+
+                    # layouts for red jk, black jk and all in labels
+                    BoxLayout:
+                        size_hint: None, 1
+                        width: root.width * 0.5
+                        BoxLayout:
+                            id: p_rjk_id
+                            pos_hint: {"x": 0.5, "y": 0.15}
+                        BoxLayout:
+                            id: p_bjk_id
+                            pos_hint: {"x": 0.5, "y": 0.15}
+                        BoxLayout:
+                            id: p_ai_id
+                            pos_hint: {"x": 0.5, "y": 0.15}
+
+                # PLAYER CARDS LAYOUT
+                StackLayout:
+                    id: player_layout_id
+                    orientation: "lr-tb"
+                    padding: self.width * 0.005
+                    spacing: self.width * 0.003
+
+
+        # BOTTOM MENU
+        BoxLayout:
+
+            # padding and spacing between buttons in bottom game menu
+            padding: 5
+            spacing: 5
+
+            # size of bottom menu. Height 15% of total size
+            size_hint: 1, None
+            height: root.height * 0.15
+
+            # background color of bottom menu bar
+            canvas.before:
+                Color:
+                    rgba: hex("#404040")
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+
+            # show player current credits
+            Label:
+                id: player_credit_id
+                text: f"credits:\n{root.slider_max_bet}"
+                size_hint: None, 1
+                width: root.width * 0.12
+                bold: True
+                font_name: "aae"
+                font_size: root.width/40
+
+            Button:
+                id: hit_id
+                text: "Hit"
+                background_down: "assets/b1.png"
+                bold: True
+                font_name: "aae"
+                font_size: root.width/35
+                background_color: root.buttons_color
+                size_hint: None, 1
+                width: root.width * 0.12
+                disabled:
+                    root.h_s_status
+                on_press:
+                    root.on_hit_click()
+
+            Label:
+                id: player_bet_id
+                # display slider selected value
+                text: "bet:\n" + str(int(slider_id.value))
+                bold: True
+                font_name: "aae"
+                font_size: root.width/40
+                size_hint: None, 1
+                width: root.width * 0.12
+
+            Slider:
+                id: slider_id
+                cursor_image: "assets/t3.png"
+                cursor_disabled_image: "assets/t1.png"
+                cursor_size: root.width/20 , root.height/10
+                value_track: True
+                background_width: 20
+                min: 1
+                # slider_max_bet take player's credit value. It refresh each turn and limits slider to player
+                # current owning credit
+                max: int(root.slider_max_bet)
+                on_value:
+                    root.on_slider_value(self)
+                disabled:
+                    root.bet_status
+
+            Button:
+                id: bet_id
+                text: "Bet"
+                background_down: "assets/b1.png"
+                background_disabled_down: "assets/b1.png"
+                bold: True
+                font_name: "aae"
+                font_size: root.width/35
+                background_color: root.buttons_color
+                size_hint: None, 1
+                width: root.width * 0.12
+                disabled:
+                    root.bet_status
+                on_press:
+                    root.on_bet_click()
+
+            Button:
+                id: stand_id
+                text: "Stand"
+                background_down: "assets/b1.png"
+                background_disabled_down: "assets/b1.png"
+                bold: True
+                font_name: "aae"
+                font_size: root.width/35
+                background_color: root.buttons_color
+                size_hint: None, 1
+                width: root.width * 0.12
+                disabled:
+                    root.h_s_status
+                on_press:
+                    root.on_stand_click()
+
+            Button:
+                id: menu_id
+                text: "Menu"
+                background_down: "assets/b1.png"
+                bold: True
+                font_name: "aae"
+                font_size: root.width/35
+                background_color: root.buttons_color
+                size_hint: None, 1
+                width: root.width * 0.12
+                on_release:
+                    # play but sound
+                    ga.GameSound.play_buttons_sound()
+
+                    # change screen to main
+                    app.root.current = "main"
+
+                    # stop in_game sound
+                    ga.GameSound.stop_in_game_sound()
+
+                    # play menu sound
+                    ga.GameSound.play_menu_sound()
+
+
+<GameInfoWindow>:
+
+    name: "info"
+
+    canvas.before:
+        Rectangle:
+            pos: self.pos
+            size: self.size
+            source: "assets/rules_bg.jpg"
+
+    # returns to menu
+    Button:
+        text: "Back"
+        bold: True
+        font_name: "aae"
+        font_size: root.width/35
+        background_normal: "assets/b1.png"
+        background_down: "assets/b1.png"
+        pos_hint: {"center_x": .95, "center_y": .95}
+        size_hint: .1, .1
+        on_release:
+            # play but sound
+            ga.GameSound.play_buttons_sound()
+
+            # stop info sound
+            ga.GameSound.stop_info_sound()
+
+            # return to main screen
+            app.root.current = "main"
+
+            # play menu sound
+            ga.GameSound.play_menu_sound()
+
+    ScrollView:
+        size_hint: 1, .90
+        do_scroll_x: False
+        do_scroll_y: True
+        bar_color: [217 , 255 , 251 , 1]
+        bar_width: 12
+
+        GridLayout:
+            size: root.width, root.height
+            size_hint_x: None
+            size_hint_y: None
+            height: self.minimum_height
+            cols: 1
+            spacing: 10
+
+            # the game information and rules are presented in the info menu
+            InfoTitlesLabel:
+                text: "How to play"
+
+            InfoTextLabel:
+                text: "- Slide the white arrow to the right to select an amount and bet it via the Bet button."
+
+            InfoTextLabel:
+                text: "- To receive a new card press the Hit button."
+
+            InfoTextLabel:
+                text: "- To finish your turn press the Stand button. If you own ace/s you will be prompt to select a card value. Beware - you can bust if the sum of the selected ace/s value and the rest of your cards exceed 21!"
+
+            InfoTextLabel:
+                text: "- You can restart the game via the 'RES' button in the upper left corner."
+
+            InfoTitlesLabel:
+                text: "Win-loss-tie"
+
+            InfoTextLabel:
+                text: "- Blackjack (if sum of two cards is 21) beats non-Blackjack 21 and any other hand value."
+
+            InfoTextLabel:
+                text: "- Win: the player or the dealer wins if one of them owns higher hand value on the check. If player wins, he receives the bet amount multiplied by the profit percentage."
+
+            InfoTextLabel:
+                text: "- Loss: the player or the dealer loses if busts (hand value exceeds 21) or owns lower hand value on the check. If the player loses, the bet is lost."
+
+            InfoTextLabel:
+                text: "- Tie: if the check of player's and dealer's hand value is equal, it means tie. Beware - only two Blackjacks can be equal! If tie, player's bet is returned."
+
+            InfoTitlesLabel:
+                text: "Dynamic difficulty adjustment (DDA)"
+
+            InfoTextLabel:
+                text: "- The difficulty of the game increases as the player's held credits increase. When the difficulty goes up the player's bonus for all in and the starting value of profit percentage is reduced, the curse event chance increases at the same time. There are two levels of difficulties D1 and D2. When game difficulty increases, a label (D1 or D2) appears."
+
+            InfoTitlesLabel:
+                text: "Profit percentage"
+
+            InfoTextLabel:
+                text: "- Each new turn the profit percentage starting value is 1.5 (modify by the DDA!), but it can be increased or reduced by events and cards. Beware - the profit percentage can be reduced below 1!"
+
+            InfoTitlesLabel:
+                text: "Special events"
+
+            InfoTextLabel:
+                text: "- Hit a card: each new card drawn by the player adds 0.1 to the profit percentage."
+
+            InfoTextLabel:
+                text: "- All in: if player's all in, 0.5 (modify by the DDA!) are added to profit percentage. 'AI' (all in) label appears in player's side."
+
+            InfoTextLabel:
+                text: "- First two cards are Aces: the sum of the two Aces card values becomes 10 (for both the player and the dealer) to allow more flexibility. If owned by the player (Player's 2ACE), 0.3 are added to the profit percentage. If owned by the dealer (Dealer's 2ACE), 0.3 are subtracted from the profit percentage."
+
+            InfoTextLabel:
+                text: "- Curse and bless: each player win has a chance to be cursed or blessed. Chance for both events is equal, until player goes up in the game difficulty (curse chance is modified by the DDA!). If cursed, the profit percentage reduces by 30%. If blessed, the profit percentage increases by 30%."
+
+            InfoTitlesLabel:
+                text: "Special cards"
+
+            InfoTextLabel:
+                text: "- Aces: instead of the classic choices, player's options are 1 ,6 ,11. This provides more flexibility at the cost of the credit. The cost is taken from player's credit on each selection and is added to the bet. If player's credits are 0 or less, each selection reduces the bet."
+
+            InfoTextLabel:
+                text: "- Black joker: can be own by the player or the dealer and its card value is 0. Once the card is drawn a 'BJ' (Black joker), a label appears in the owner's side and it shows that uses the card benefit. If the impact is on the player's side, the player receives percentage from the sum of credits and the bet as bonus credits. If the impact is on the dealer's side, player loses credits as a percentage from the sum of credits and the bet. The impact lasts until card owner loses or the other side draws a black joker."
+
+            InfoTextLabel:
+                text: "- Red joker: can be own by the player or the dealer and its card value is 0. Once the card is drawn a 'RJ' (Red joker), a label appears in the owner's side and it shows that uses the card benefit. If the trick is on the player's side and wins, 0.15 are added for each owned card to the profit percentage. If the trick is on the dealer's side and the player wins, he loses 0.15 profit percentage for each owned card. The trick applies when the player wins a turn, then it disappears."
+
+            InfoTitlesLabel:
+                text: "Game over & ranking"
+
+            InfoTextLabel:
+                text: "- The game ends when the player loses all of the credits or reaches the last rank."
+
+            InfoTextLabel:
+                text: "- There are 7 ranks. In the end of the game it will be displayed the player's highest rank and credits achieved."
