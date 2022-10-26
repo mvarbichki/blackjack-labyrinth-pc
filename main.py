@@ -13,6 +13,7 @@ from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.core.text import LabelBase
 
+# change mouse cursor
 Window.set_system_cursor("hand")
 
 kivy.require("2.1.0")
@@ -1973,7 +1974,8 @@ class GameWindow(Screen):
 
 
 class BjlApp(App):
-
+    
+    # sets the borderless game window size
     Window.borderless = True
     Window.size = (1366, 768)
 
